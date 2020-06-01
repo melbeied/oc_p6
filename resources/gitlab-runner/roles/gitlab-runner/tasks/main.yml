@@ -1,0 +1,14 @@
+---
+- name: Load platform-specific variables
+  include_vars: "{{ lookup('first_found', possible_files) }}"
+  vars:
+    possible_files:
+      files:
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+        - default.yml
+      paths:
+        - 'vars'
+
+- name: Install GitLab Runner
+  import_tasks: 'Ubuntu.yml'

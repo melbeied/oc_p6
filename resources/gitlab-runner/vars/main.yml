@@ -1,0 +1,4 @@
+---
+gitlab_runner_registration_token: 'GoxsVF_drzjgHs_ejBq8'                    
+gitlab_server_hostname : 'casablanca'
+gitlab_server_ip : '192.168.34.100'

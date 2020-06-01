@@ -1,0 +1,74 @@
+variables:
+  GIT_STRATEGY: empty
+########
+
+cache:
+  key: $CI_COMMIT_REF_NAME}-${CI_COMMIT_REF_SLUG}
+  paths:
+    - vendor/
+########
+
+stages:
+  - build
+  - test
+  - deploy
+########
+
+build:
+  stage: build
+  script: 
+    - echo "Building the application"
+    - JSON_MSG='{"commit hash":"%s","commit message":"%s","version":"%s"}\n'
+    - printf "$JSON_MSG" "$CI_COMMIT_SHA" "$CI_COMMIT_TAG" "$(git log -1 --pretty=%B)" 2>&1 | tee public/version.json
+    - composer install -n
+  artifacts:
+    name: showcase-$CI_COMMIT_SHA
+    expire_in: 1 month
+    paths:
+      - ./*
+  tags : 
+    - recette
+########
+
+test:
+  stage: test
+  script: 
+    - echo "Running tests"
+    - bin/console lint:yaml translations/
+    - bin/console lint:twig templates/
+    - ./bin/phpunit
+  tags:
+    - recette
+  
+  except:
+    - tags
+######
+
+deploy_UAT:
+  stage: deploy
+  script:
+    - echo "Deploy to staging server"
+    - nc -z 127.0.0.1 8000 && php bin/console server:stop
+    - php bin/console server:start 0.0.0.0:8000  > /dev/null 2>&1 &
+  tags: 
+    - recette
+  environment:
+    name: recette
+  
+  except:
+    - tags
+######
+
+deploy_prod:
+  stage: deploy
+  script:
+    - echo "Deploy to production server"
+    - nc -z 127.0.0.1 8000 && php bin/console server:stop
+    - php bin/console server:start 0.0.0.0:8000  > /dev/null 2>&1 &
+  environment:
+    name: production
+  when: manual
+  
+  only:
+    - tags
+######
