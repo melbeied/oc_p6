@@ -1,0 +1,10 @@
+---
+- name : Installation Gitlab Runner
+  hosts: runners
+  user: vagrant
+  gather_facts: Yes
+  become: yes 
+  vars_files:
+    - vars/main.yml
+  roles:
+    - gitlab-runner
